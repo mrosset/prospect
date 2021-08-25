@@ -1,0 +1,85 @@
+#!/bin/sh
+
+####
+#### Copyright (C) 2016 - 2018
+#### Free Software Foundation, Inc.
+
+#### This file is part of GNU G-Golf
+
+#### GNU G-Golf is free software; you can redistribute it and/or modify
+#### it under the terms of the GNU Lesser General Public License as
+#### published by the Free Software Foundation; either version 3 of the
+#### License, or (at your option) any later version.
+
+#### GNU G-Golf is distributed in the hope that it will be useful, but
+#### WITHOUT ANY WARRANTY; without even the implied warranty of
+#### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#### Lesser General Public License for more details.
+
+#### You should have received a copy of the GNU Lesser General Public
+#### License along with GNU G-Golf.  If not, see
+#### <https://www.gnu.org/licenses/lgpl.html>.
+####
+
+
+abs_top_srcdir="@abs_top_srcdir@/scheme"
+abs_top_builddir="@abs_top_builddir@/scheme/"
+
+[ x"$abs_top_srcdir"   = x -o ! -d "$abs_top_srcdir" -o \
+  x"$abs_top_builddir" = x -o ! -d "$abs_top_builddir" ] && {
+    echo $0: bad environment
+    echo abs_top_srcdir=$abs_top_srcdir
+    echo abs_top_builddir=$abs_top_builddir
+    exit 1
+}
+
+
+###
+### GUILE_LOAD_PATH
+###
+
+if [ x"$GUILE_LOAD_PATH" = x ]
+then
+    GUILE_LOAD_PATH=$abs_top_builddir:$abs_top_srcdir
+else
+    GUILE_LOAD_PATH=$abs_top_builddir:$abs_top_srcdir:$GUILE_LOAD_PATH
+fi
+## echo $GUILE_LOAD_PATH
+export GUILE_LOAD_PATH
+
+
+###
+### GUILE_LOAD_COMPILED_PATH
+###
+
+if [ x"$GUILE_LOAD_COMPILED_PATH" = x ]
+then
+    GUILE_LOAD_COMPILED_PATH=$abs_top_builddir:$abs_top_srcdir
+else
+    GUILE_LOAD_COMPILED_PATH=$abs_top_builddir:$abs_top_srcdir:$GUILE_LOAD_COMPILED_PATH
+fi
+## echo $GUILE_LOAD_COMPILED_PATH
+export GUILE_LOAD_COMPILED_PATH
+
+
+###
+### LD_LIBRARY_PATH
+###
+
+if [ x"$LD_LIBRARY_PATH" = x ]
+then
+    LD_LIBRARY_PATH=$abs_top_builddir/libg-golf:$abs_top_srcdir/libg-golf
+else
+    LD_LIBRARY_PATH=$abs_top_builddir/libg-golf:$abs_top_srcdir/libg-golf:$LD_LIBRARY_PATH
+fi
+
+## echo $LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+
+# TEST_IMAGES_PATH=$abs_top_srcdir/doc/images
+# export TEST_IMAGES_PATH
+
+
+export GUILE_AUTO_COMPILE=0
+
+exec "$@"
