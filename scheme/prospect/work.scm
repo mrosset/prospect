@@ -37,6 +37,37 @@ base16 string the endianness is big"
     (swap-order
      (hash-header bv))))
 
+;; Simulate proof of work with two rounds. The staring nonce in once less
+;; then a know found nonce.
+(define-method (test-work-rounds (self <test-work>))
+  (let* ((version "02000000")
+	 (prev    "17975b97c18ed1f7e255adf297599b55330edab87803c8170100000000000000")
+	 (root    "8a97295a2747b4f1a0b3948df3990344c0e19fa6b2b92b3a19c8e6badc141787")
+	 (time    (int2hex 1392872245))
+	 (bits    419520339)
+	 (nonce   856192327)
+	 (target  (difficulty bits))
+	 (step    (lambda (incr)
+		    (work #:version version
+			  #:prev prev
+			  #:root root
+			  #:time time
+			  #:bits (int2hex bits)
+			  #:nonce (int2hex (+ nonce incr))))))
+    ;; Check we have the right target hash.
+    (assert-equal "00000000000000015f5300000000000000000000000000000000000000000000"
+		  target)
+    ;; Check we are starting with the right nonce.
+    (assert-equal "8cca5b98c8adeb059907c6b94dd513e72c51d0fd2f95922b57004f567d10e497"
+		  (step 0))
+    ;; Check that incrementing the nonce by one finds the block hash.
+    (assert-equal "0000000000000000e067a478024addfecdc93628978aa52d91fabd4292982a50"
+		  (step 1))
+    ;; Check we have not found the hash
+    (assert-false (string< (step 0) target))
+    ;; Check we have found the hash
+    (assert-true (string< (step 1) target))))
+
 ;; This tests bitcoin's second block. The block after the genesis block. Since
 ;; the genesis block does not have a previous block hash I'm not sure
 ;; how the proof of work algorithm handles that.

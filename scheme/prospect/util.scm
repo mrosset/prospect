@@ -22,7 +22,8 @@
   #:use-module (unit-test)
   #:use-module (rnrs bytevectors)
   #:use-module (gcrypt base16)
-  #:export (swap-order
+  #:export (difficulty
+            swap-order
             int2hex))
 
 (define-class <test-util> (<test-case>))
