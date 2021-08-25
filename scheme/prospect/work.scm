@@ -37,24 +37,30 @@ base16 string the endianness is big"
     (swap-order
      (hash-header bv))))
 
-;; FIXME: This should hash correctly
-;;
-;; According to
-;; http://www.righto.com/2014/02/bitcoin-mining-hard-way-algorithms.html?m=1
-;; this should successfully find
-;; 0000000000000000e067a478024addfecdc93628978aa52d91fabd4292982a50
-;; with a nonce of 856192328, but this hash fails. could be that the
-;; python packing is different the using hexadecimal strings?
-(define-method (test-work-complex (self <test-work>))
+;; This tests bitcoin's second block. The block after the genesis block. Since
+;; the genesis block does not have a previous block hash I'm not sure
+;; how the proof of work algorithm handles that.
+(define-method (test-work-block-two (self <test-work>))
   (let ((result (work
 		 #:version (int2hex 1)
-		 #:prev    "7179b5791ce81d7f2e55da2f7995b95533e0ad8b87308c711000000000000000"
-		 #:root    "a87992a572744b1f0a3b49d83f9930440c1ef96a2b9bb2a3918c6eabcd417178"
+		 #:prev    (swap-order "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")
+		 #:root    (swap-order "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098")
+		 #:time    (int2hex 1231469665)
+		 #:bits    (int2hex 486604799)
+		 #:nonce   (int2hex 2573394689))))
+    (assert-equal "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"
+		  result)))
+
+(define-method (test-work-complex (self <test-work>))
+  (let ((result (work
+		 #:version "02000000"
+		 #:prev    "17975b97c18ed1f7e255adf297599b55330edab87803c8170100000000000000"
+		 #:root    "8a97295a2747b4f1a0b3948df3990344c0e19fa6b2b92b3a19c8e6badc141787"
 		 #:time    (int2hex 1392872245)
 		 #:bits    (int2hex 419520339)
 		 #:nonce   (int2hex 856192328))))
-    (assert-false (string=? "0000000000000000e067a478024addfecdc93628978aa52d91fabd4292982a50"
-			    result))))
+    (assert-equal "0000000000000000e067a478024addfecdc93628978aa52d91fabd4292982a50"
+		  result)))
 
 (define-method (test-work-simple (self <test-work>))
   (let ((result (work
