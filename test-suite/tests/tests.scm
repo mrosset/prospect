@@ -16,5 +16,7 @@
 ;; You should have received a copy of the GNU General Public License along
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-module (tests util)
-  #:use-module (prospect util))
+(define-module (tests tests)
+  #:use-module (prospect util)
+  #:use-module (prospect work)
+  #:use-module (prospect rpc))

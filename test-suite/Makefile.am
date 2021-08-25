@@ -16,8 +16,7 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-TESTS  = tests/util.scm
-TESTS += tests/work.scm
+TESTS  = tests/tests.scm
 
 TEST_EXTENSIONS = .scm
 

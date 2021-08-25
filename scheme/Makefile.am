@@ -20,6 +20,7 @@ include $(top_srcdir)/am/guile.mk
 
 SOURCES  = prospect/util.scm
 SOURCES += prospect/work.scm
+SOURCES += prospect/rpc.scm
 
 CLEANFILES = $(GOBJECTS)
 
