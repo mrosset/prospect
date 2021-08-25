@@ -62,24 +62,6 @@ fi
 export GUILE_LOAD_COMPILED_PATH
 
 
-###
-### LD_LIBRARY_PATH
-###
-
-if [ x"$LD_LIBRARY_PATH" = x ]
-then
-    LD_LIBRARY_PATH=$abs_top_builddir/libg-golf:$abs_top_srcdir/libg-golf
-else
-    LD_LIBRARY_PATH=$abs_top_builddir/libg-golf:$abs_top_srcdir/libg-golf:$LD_LIBRARY_PATH
-fi
-
-## echo $LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
-
-# TEST_IMAGES_PATH=$abs_top_srcdir/doc/images
-# export TEST_IMAGES_PATH
-
-
 export GUILE_AUTO_COMPILE=0
 
 exec "$@"

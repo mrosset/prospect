@@ -18,10 +18,3 @@
 
 (define-module (tests client)
   #:use-module (prospect util))
-
-;; (define-class <test-request> (<test-case>))
-
-;; (define-method (test-request (self <test-request>))
-;;   (let((status (make <status>)))
-;;     (assert-true (health-check status))
-;;     (assert-equal <status> (class-of status))))
