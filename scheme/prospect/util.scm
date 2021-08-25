@@ -17,23 +17,35 @@
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (prospect util)
+  #:use-module (ice-9 format)
   #:use-module (oop goops)
   #:use-module (unit-test)
   #:use-module (rnrs bytevectors)
   #:use-module (gcrypt base16)
   #:export (swap-order
-	    int2hex))
+            int2hex))
 
 (define-class <test-util> (<test-case>))
 
 (define (swap-order str)
   "Swaps base16 @var{str}'s little endianness to big endianness"
   (let swap ((n "")
-	     (i 0))
+             (i 0))
     (if (< i (string-length str))
-	(let ((sub (string-reverse (substring str i (+ i 2)))))
-	  (swap (string-append n sub) (+ i 2)))
-	(string-reverse n))))
+        (let ((sub (string-reverse (substring str i (+ i 2)))))
+          (swap (string-append n sub) (+ i 2)))
+        (string-reverse n))))
+
+;; 0x0404cb * 2**(8*(0x1b - 3))
+(define (difficulty bits)
+  "Returns the target hash for difficulty @var{bits}"
+  (let ((exp  (round-ash bits -24))
+        (mant (logand bits #xffffff)))
+    (format #f "~64,'0x" (* mant (round-ash 1 (* 8 (- exp 3)))))))
+
+(define-method (test-diff (self <test-util>))
+  (assert-equal "00000000000000015f5300000000000000000000000000000000000000000000"
+                (difficulty #x19015f53)))
 
 (define (int2hex int)
   "Converts a integer to a hex string."
