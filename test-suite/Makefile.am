@@ -17,6 +17,7 @@
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 TESTS  = tests/util.scm
+TESTS += tests/work.scm
 
 TEST_EXTENSIONS = .scm
 

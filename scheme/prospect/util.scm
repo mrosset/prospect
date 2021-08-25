@@ -20,9 +20,9 @@
   #:use-module (oop goops)
   #:use-module (unit-test)
   #:use-module (rnrs bytevectors)
-  #:use-module (gcrypt hash)
   #:use-module (gcrypt base16)
-  #:export (int2hex))
+  #:export (swap-order
+	    int2hex))
 
 (define-class <test-util> (<test-case>))
 
@@ -34,11 +34,6 @@
 	(let ((sub (string-reverse (substring str i (+ i 2)))))
 	  (swap (string-append n sub) (+ i 2)))
 	(string-reverse n))))
-
-(define (hash-header bv)
-  "Hashes a block header @var{bv} a bytevector and returns it's hash as a
-base16 string the endianness is big"
-  (bytevector->base16-string (sha256 (sha256 bv))))
 
 (define (int2hex int)
   "Converts a integer to a hex string."

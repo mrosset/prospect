@@ -1,4 +1,4 @@
-;; util.scm
+;; work.scm
 ;; Copyright (C) 2021 Michael Rosset <mike.rosset@gmail.com>
 
 ;; This file is part of Prospect
@@ -16,5 +16,5 @@
 ;; You should have received a copy of the GNU General Public License along
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-module (tests util)
-  #:use-module (prospect util))
+(define-module (tests work)
+  #:use-module (prospect work))
