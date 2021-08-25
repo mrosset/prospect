@@ -46,14 +46,14 @@ base16 string the endianness is big"
 	 (time    (int2hex 1392872245))
 	 (bits    419520339)
 	 (nonce   856192327)
-	 (target  (difficulty bits))
-	 (step    (lambda (incr)
-		    (work #:version version
-			  #:prev prev
-			  #:root root
-			  #:time time
-			  #:bits (int2hex bits)
-			  #:nonce (int2hex (+ nonce incr))))))
+	 (target  (difficulty bits)))
+    (define (step incr)
+      (work #:version version
+	    #:prev prev
+	    #:root root
+	    #:time time
+	    #:bits (int2hex bits)
+	    #:nonce (int2hex (+ nonce incr))))
     ;; Check we have the right target hash.
     (assert-equal "00000000000000015f5300000000000000000000000000000000000000000000"
 		  target)
