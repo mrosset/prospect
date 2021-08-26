@@ -1,0 +1,3 @@
+[submodule "libblkmaker"]
+	path = libblkmaker
+	url = https://github.com/bitcoin/libblkmaker

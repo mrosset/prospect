@@ -26,6 +26,9 @@ AM_INIT_AUTOMAKE([gnu -Wall -Werror -Wno-portability -Wno-syntax  color-tests se
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
+dnl libtool
+LT_INIT([dlopen])
+
 dnl Guile
 GUILE_PKG([3.0 2.2])
 GUILE_PROGS
@@ -45,5 +48,8 @@ test-suite/Makefile
 ])
 
 AC_CONFIG_FILES([pre-inst-env],[chmod +x pre-inst-env])
+
+dnl Sub project
+AC_CONFIG_SUBDIRS([libblkmaker])
 
 AC_OUTPUT
