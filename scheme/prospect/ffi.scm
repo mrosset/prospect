@@ -1,4 +1,4 @@
-;; util.scm
+;; ffi.scm
 ;; Copyright (C) 2021 Michael Rosset <mike.rosset@gmail.com>
 
 ;; This file is part of Prospect
@@ -16,9 +16,7 @@
 ;; You should have received a copy of the GNU General Public License along
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-module (tests tests)
-  #:use-module (prospect util)
-  #:use-module (prospect ffi)
-  #:use-module (prospect work)
-  ;; #:use-module (prospect rpc)
-  )
+(define-module (prospect ffi)
+  #:use-module (system foreign))
+
+(define libm (dynamic-link "libblkmaker-0.1"))
