@@ -19,4 +19,10 @@
 (define-module (prospect ffi)
   #:use-module (system foreign))
 
-(define libm (dynamic-link "libblkmaker-0.1"))
+(define libblkmaker (dynamic-link "libblkmaker-0.1"))
+
+
+(define gnu-version
+  (pointer->procedure '*
+		      (dynamic-func "gnu_get_libc_version" (dynamic-link))
+		      '()))
