@@ -30,7 +30,7 @@ dnl libtool
 LT_INIT([dlopen])
 
 dnl Guile
-GUILE_PKG([2.2])
+GUILE_PKG([3.0])
 GUILE_PROGS
 GUILE_SITE_DIR
 GUILE_FLAGS

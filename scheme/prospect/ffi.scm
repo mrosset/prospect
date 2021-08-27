@@ -17,12 +17,67 @@
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (prospect ffi)
-  #:use-module (system foreign))
+  #:use-module (prospect util)
+  #:use-module (prospect rpc)
+  #:use-module (oop goops)
+  #:use-module (unit-test)
+  #:use-module (system foreign)
+  #:use-module (system foreign-library))
 
-(define libblkmaker (dynamic-link "libblkmaker-0.1"))
+(define-class <test-ffi> (<test-case>))
 
+(define libblkmaker "libblkmaker-0.1")
+
+(define libblkmaker-jansson "libblkmaker_jansson-0.1")
+
+(define libjansson "libjansson")
 
 (define gnu-version
-  (pointer->procedure '*
-		      (dynamic-func "gnu_get_libc_version" (dynamic-link))
-		      '()))
+  (foreign-library-function
+   #f
+   "gnu_get_libc_version"
+   #:return-type '*))
+
+(define make-template
+  (foreign-library-function
+   libblkmaker
+   "blktmpl_create"
+   #:return-type '*))
+
+(define add-caps
+  (foreign-library-function
+   libblkmaker
+   "blktmpl_addcaps"
+   #:return-type uint32
+   #:arg-types (list '*)))
+
+(define request-jansson
+  (foreign-library-function
+   libblkmaker-jansson
+   "blktmpl_request_jansson"
+   #:return-type '*
+   #:arg-types (list uint32 '*)))
+
+(define (request->string req)
+  "Returns the json string for @var{req}"
+  (pointer->string (json-dumps req 2)))
+
+(define json-dumps
+  (foreign-library-function
+   libjansson
+   "json_dumps"
+   #:return-type '*
+   #:arg-types (list '* size_t)))
+
+(define-method (test-template (self <test-ffi>))
+  (assert-true (pointer? (make-template)))    )
+
+(define-method (test-request (self <test-ffi>))
+  (let* ((tmpl (make-template))
+	 (req  (request-jansson (add-caps tmpl)
+				%null-pointer))
+	 (res  (post-json "getblocktemplate"
+			  (request->string req))))
+    (assert-true (pointer? req))
+    (assert-true (string? (request->string req)))
+    (assert-true (string? res))))

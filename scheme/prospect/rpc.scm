@@ -21,15 +21,14 @@
   #:use-module (oop goops)
   #:use-module (json)
   #:use-module (web client)
-  ;; #:use-module (web request)
   #:use-module (web response)
   #:use-module (rnrs bytevectors)
-  #:use-module (unit-test))
+  #:use-module (unit-test)
+  #:export (post-json))
 
 (define-class <test-rpc> (<test-case>))
 
-
-(define host (make-parameter  "http://localhost:8332"))
+(define host (make-parameter  "http://localhost:8333"))
 
 (define headers '((Authorization .
                                  "Basic c3RyaW5nczp0VnNnWW5rYWlQUnhUSElNV1NscUdycXZyUWNTaEJ3SXJBeTV1Qi1vRVZnPQ==")))
@@ -48,9 +47,17 @@
   (method)
   (params))
 
-(define (dimi obj)
-  (format #t "~a\n" obj)
-  obj)
+(define (post-json method str)
+  "Posts to servers @var{method} with json @var{str}. Returns a raw
+json response string"
+  (receive (res body)
+        (http-post (host) #:body str #:headers headers)
+    (utf8->string body)))
+
+;; FIXME: This does not actually post anything.  Find a simple string
+;; to post without effecting the RPC server.
+(define-method (test-post-json (self <test-rpc>))
+  (assert-true (string? (post-json "logging" ""))))
 
 (define* (post method #:optional (param '()))
   (let ((p (make-post "2.0" "(prospect post)" method param)))
@@ -86,12 +93,4 @@
   "Returns a mining block template"
   (let* ((t (make-template-request #("segwit")))
          (r (post "getblocktemplate" (vector (template-request->scm t)))))
-    (template-result-version (result-result r))
-    ;; (dimi (class-of r))
-    ))
-
-(define-method (test-template (self <test-rpc>))
-  (assert-true #t))
-
-;; (define-method (test-rpc (self <test-rpc>))
-;;   (assert-false (error? (get-block-template))))
+    (template-result-version (result-result r))))
