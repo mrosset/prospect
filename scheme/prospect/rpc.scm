@@ -47,17 +47,17 @@
   (method)
   (params))
 
-(define (post-json method str)
-  "Posts to servers @var{method} with json @var{str}. Returns a raw
-json response string"
+(define (post-json str)
+  "Posts @var{str} request to rpc server, returns response string"
   (receive (res body)
-        (http-post (host) #:body str #:headers headers)
+      (http-post (host) #:body str #:headers headers)
     (utf8->string body)))
 
 ;; FIXME: This does not actually post anything.  Find a simple string
 ;; to post without effecting the RPC server.
 (define-method (test-post-json (self <test-rpc>))
-  (assert-true (string? (post-json "logging" ""))))
+  (let ((p (make-post "2.0" "test" "logging" #())))
+    (assert-true (string? (post-json (post->json p))))))
 
 (define* (post method #:optional (param '()))
   (let ((p (make-post "2.0" "(prospect post)" method param)))

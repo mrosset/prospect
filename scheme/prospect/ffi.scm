@@ -73,11 +73,10 @@
   (assert-true (pointer? (make-template)))    )
 
 (define-method (test-request (self <test-ffi>))
-  (let* ((tmpl (make-template))
-	 (req  (request-jansson (add-caps tmpl)
-				%null-pointer))
-	 (res  (post-json "getblocktemplate"
-			  (request->string req))))
+  (let* ((tmpl  (make-template))
+	 (req   (request-jansson (add-caps tmpl)
+				 %null-pointer))
+	 (res  (post-json (request->string req))))
     (assert-true (pointer? req))
     (assert-true (string? (request->string req)))
     (assert-true (string? res))))
