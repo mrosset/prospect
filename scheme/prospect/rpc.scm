@@ -18,12 +18,15 @@
 
 (define-module (prospect rpc)
   #:use-module (ice-9 receive)
-  #:use-module (oop goops)
+  #:use-module (ice-9 textual-ports)
+  #:use-module (srfi srfi-43)
   #:use-module (json)
-  #:use-module (web client)
-  #:use-module (web response)
+  #:use-module (oop goops)
+  #:use-module (prospect util)
   #:use-module (rnrs bytevectors)
   #:use-module (unit-test)
+  #:use-module (web client)
+  #:use-module (web response)
   #:export (post-json))
 
 (define-class <test-rpc> (<test-case>))
@@ -32,6 +35,16 @@
 
 (define headers '((Authorization .
                                  "Basic c3RyaW5nczp0VnNnWW5rYWlQUnhUSElNV1NscUdycXZyUWNTaEJ3SXJBeTV1Qi1vRVZnPQ==")))
+
+(define default-cap #("coinbasetxn"
+                      "workid"
+                      "coinbase/append"
+                      ;; "time/increment"
+                      ;; "version/force"
+                      ;; "version/reduce"
+                      ;; "submit/coinbase"
+                      ;; "submit/truncate"
+                      ))
 
 (define-json-type <result>
   (result)
@@ -42,8 +55,8 @@
   (message))
 
 (define-json-type <post>
-  (jsonrpc)
   (id)
+  (jsonrpc)
   (method)
   (params))
 
@@ -74,23 +87,84 @@
   (chainwork))
 
 (define-json-type <template-request>
-  (rules))
+  (rules)
+  (capabilities))
+
+(define-json-type <transaction>
+  (data)
+  (txid)
+  (hash)
+  (depends)
+  (fee)
+  (sigops)
+  (weight))
 
 (define-json-type <template-result>
-  (version))
+  (version)
+  (rules)
+  (previousblockhash)
+  (transactions)
+  (coinbasetxn)
+  (coinbaseaux)
+  (coinbasevalue)
+  (longpollid)
+  (target)
+  (mintime)
+  (mutable)
+  (noncerange)
+  (sioplimit)
+  (sizelimit)
+  (weightlimit)
+  (curtime)
+  (bits)
+  (height)
+  (default-witness-commitment))
 
-(define (blockchain-info)
+(define (chain-info)
   "Returns blockchain information"
   (let ((r (post "getblockchaininfo" '())))
     (if r
         (scm->chain-info (result-result r))
         r)))
 
+(define-method (test-chain-info (self <test-rpc>))
+  (let ((info (chain-info)))
+    (assert-true (chain-info? info))
+    (assert-equal "regtest" (chain-info-chain info))))
+
 (define-method (test-info (self <test-rpc>))
   (assert-true #t))
 
-(define (get-block-template)
+(define* (get-block-template #:key (cap default-cap))
   "Returns a mining block template"
-  (let* ((t (make-template-request #("segwit")))
+  (let* ((t (make-template-request #("segwit")
+                                   cap))
          (r (post "getblocktemplate" (vector (template-request->scm t)))))
-    (template-result-version (result-result r))))
+    (scm->template-result (result-result r))))
+
+(define (merkle-root tmpl)
+  "Returns the templates Merle for transactions."
+  (let ((txns (template-result-transactions tmpl)))
+    (vector-map (lambda (i v)
+                  (display (transaction-data (scm->transaction v)))
+                  (newline))
+                txns)))
+
+(define (read-json file)
+  "Reads the json @var{file} and returns the json string as a <result>"
+  (json->result
+        (call-with-input-file file get-string-all)))
+
+(define-method (test-read-json (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template-result (result-result res))))
+    (assert-true (result? res))
+    (assert-true (template-result? tmpl))))
+
+(define-method (test-template (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template-result (result-result res))))
+    (assert-true (result? res))
+    (assert-true (template-result? tmpl))
+    (assert-true (integer? (template-result-height tmpl)))
+    (assert-true (vector? (template-result-transactions tmpl)))))
