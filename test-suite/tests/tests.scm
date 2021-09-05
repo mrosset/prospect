@@ -18,6 +18,6 @@
 
 (define-module (tests tests)
   #:use-module (prospect util)
-  #:use-module (prospect ffi)
+  ;; #:use-module (prospect ffi)
   #:use-module (prospect work)
   #:use-module (prospect rpc))
