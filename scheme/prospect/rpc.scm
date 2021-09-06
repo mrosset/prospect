@@ -99,7 +99,7 @@
   (sigops)
   (weight))
 
-(define-json-type <template-result>
+(define-json-type <template>
   (version)
   (rules)
   (previousblockhash)
@@ -130,7 +130,7 @@
 (define-method (test-chain-info (self <test-rpc>))
   (let ((info (chain-info)))
     (assert-true (chain-info? info))
-    (assert-equal "regtest" (chain-info-chain info))))
+    (assert-equal "main" (chain-info-chain info))))
 
 (define-method (test-info (self <test-rpc>))
   (assert-true #t))
@@ -140,15 +140,22 @@
   (let* ((t (make-template-request #("segwit")
                                    cap))
          (r (post "getblocktemplate" (vector (template-request->scm t)))))
-    (scm->template-result (result-result r))))
+    (scm->template (result-result r))))
 
 (define (merkle-root tmpl)
   "Returns the templates Merle for transactions."
-  (let ((txns (template-result-transactions tmpl)))
-    (vector-map (lambda (i v)
-                  (display (transaction-data (scm->transaction v)))
-                  (newline))
-                txns)))
+  (let ((txns (template-transactions tmpl)))
+    #t
+    ;; (vector-map (lambda (i v)
+    ;;               (display (transaction-data (scm->transaction v)))
+    ;;               (newline))
+    ;;             txns)
+    ))
+
+(define-method (test-merkle-root (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template (result-result res))))
+    (merkle-root tmpl)))
 
 (define (read-json file)
   "Reads the json @var{file} and returns the json string as a <result>"
@@ -157,14 +164,17 @@
 
 (define-method (test-read-json (self <test-rpc>))
   (let* ((res  (read-json "data.json"))
-         (tmpl (scm->template-result (result-result res))))
+         (tmpl (scm->template (result-result res))))
     (assert-true (result? res))
-    (assert-true (template-result? tmpl))))
+    (assert-true (template? tmpl))
+    ;; (assert-equal "01000000016a6b6d414af172bf9c9aa7e25892628f881907db9ad97c11d34b5bd10420d3a5010000006b483045022100f4ef04168af7bcb3f08fe061280517df1a696623125c0769c5df4e554d522621022052a1d775bfe1a6f10dd888d1f17f0354745a090ef88e82476cf4307795151ad9012102195646c22ab419c14599106960cc8587266cc0ad2189861c44c5eb3dfa771d3cffffffff0228d41e00000000001976a914b44218565b0bdd80c1cc7962c11df1150f3641f988ac34f30a23000000001976a9147452552d6ca38bbfc20f3d95dd3dbb4849a33f7d88ac00000000"
+    ;;               (vector-ref (template-transactions tmpl) 0))
+    (assert-equal 105 (vector-length (template-transactions tmpl)))))
 
 (define-method (test-template (self <test-rpc>))
   (let* ((res  (read-json "data.json"))
-         (tmpl (scm->template-result (result-result res))))
+         (tmpl (scm->template (result-result res))))
     (assert-true (result? res))
-    (assert-true (template-result? tmpl))
-    (assert-true (integer? (template-result-height tmpl)))
-    (assert-true (vector? (template-result-transactions tmpl)))))
+    (assert-true (template? tmpl))
+    (assert-true (integer? (template-height tmpl)))
+    (assert-true (vector? (template-transactions tmpl)))))
