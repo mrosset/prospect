@@ -21,6 +21,7 @@
   #:use-module (gcrypt hash)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 textual-ports)
+  #:use-module (ice-9 optargs)
   #:use-module (json)
   #:use-module (oop goops)
   #:use-module (prospect util)
@@ -263,23 +264,61 @@ returning a merkle root."
     (assert-true (integer? (template-height tmpl)))
     (assert-true (vector? (template-transactions tmpl)))))
 
-(define (make-block-header tmpl)
-  "Creates a block header"
-  (let ((version (int2hex (template-version tmpl)))
-        (prev    (template-previousblockhash tmpl))
-        (root    (merkle-root tmpl))
-        (curtime (int2hex (template-curtime tmpl)))
-        (bits    (template-bits tmpl))
-        (nonc    (bytevector->base16-string (string->utf8 "NONC"))))
-    (string-append version
-                   prev
-                   root
-                   curtime
-                   bits
-                   nonc)))
 
-(define-method (test-block-header (self <test-rpc>))
+(define-class <header> ()
+  (tmpl #:init-keyword #:tmpl)
+  (version #:getter header-version #:init-value #f)
+  (prev    #:getter header-prev    #:init-value #f)
+  (root    #:getter header-root    #:init-value #f)
+  (curtime #:getter header-curtime #:init-value #f)
+  (bits    #:getter header-bits    #:init-value #f)
+  (nonc    #:getter header-nonc    #:init-form
+           (bytevector->base16-string (string->utf8 "NONC"))))
+
+(define-method (initialize (self <header>) args)
+  (let-keywords* args #f ((tmpl #f))
+                 (next-method)
+                 (when tmpl
+                   (slot-set! self 'version (int2hex (template-version tmpl)))
+                   (slot-set! self 'prev (template-previousblockhash tmpl))
+                   (slot-set! self 'root (merkle-root tmpl))
+                   (slot-set! self 'curtime (int2hex (template-curtime tmpl)))
+                   (slot-set! self 'bits (template-bits tmpl)))))
+
+(define-method (write (self <header>) port)
+  (format port ";; <header\n")
+  (format port ";;\t version : ~a\n" (header-version self))
+  (format port ";;\t prev    : ~a\n" (header-prev self))
+  (format port ";;\t root    : ~a\n" (header-root self))
+  (format port ";;\t curtime : ~a\n" (header-curtime self))
+  (format port ";;\t bits    : ~a\n" (header-bits self))
+  (format port ";;\t nonc    : ~a>\n" (header-nonc self)))
+
+(define-method (test-header (self <test-rpc>))
   (let* ((res  (read-json "data.json"))
-         (tmpl (scm->template (result-result res))))
+         (tmpl (scm->template (result-result res)))
+         (hdr  (make <header> #:tmpl tmpl)))
+    (assert-equal <header> (class-of hdr))
+    (assert-equal "04000020" (header-version hdr))
+    (assert-equal "000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8e"
+                  (header-prev hdr))
+    (assert-equal "c5fff939f628a04428c080ed5bd7cd9bc0b4722b2522743049adb18213adf28a"
+                  (header-root hdr))
+    (assert-equal "1b892f61" (header-curtime hdr))
+    (assert-equal "170ffaa0" (header-bits hdr))
+    (assert-equal "4e4f4e43" (header-nonc hdr))))
+
+(define-method (header-block (self <header>))
+  (string-append (header-version self)
+                 (header-prev self)
+                 (header-root self)
+                 (header-curtime self)
+                 (header-bits self)
+                 (header-nonc self)))
+
+(define-method (test-header-block (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template (result-result res)))
+         (hdr  (make <header> #:tmpl tmpl)))
     (assert-equal "04000020000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8ec5fff939f628a04428c080ed5bd7cd9bc0b4722b2522743049adb18213adf28a1b892f61170ffaa04e4f4e43"
-                  (make-block-header tmpl))))
+                  (header-block hdr))))
