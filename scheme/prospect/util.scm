@@ -23,8 +23,9 @@
   #:use-module (rnrs bytevectors)
   #:use-module (gcrypt base16)
   #:export (difficulty
-            swap-order
-            int2hex))
+            int2hex
+            dlog
+            swap-order))
 
 (define-class <test-util> (<test-case>))
 
@@ -63,3 +64,8 @@
   ;; Nonce
   (assert-equal "42a14695" (int2hex 2504433986))
   (assert-equal "00000000" (int2hex 0)))
+
+
+(define* (dlog prefix #:optional (obj ""))
+  (format #t ";; ~a ~a\n" prefix obj)
+  obj)
