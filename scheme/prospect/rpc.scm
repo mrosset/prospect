@@ -23,6 +23,7 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (json)
   #:use-module (oop goops)
+  #:use-module (prospect util)
   #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-43)
   #:use-module (unit-test)
@@ -261,3 +262,24 @@ returning a merkle root."
     (assert-true (template? tmpl))
     (assert-true (integer? (template-height tmpl)))
     (assert-true (vector? (template-transactions tmpl)))))
+
+(define (make-block-header tmpl)
+  "Creates a block header"
+  (let ((version (int2hex (template-version tmpl)))
+        (prev    (template-previousblockhash tmpl))
+        (root    (merkle-root tmpl))
+        (curtime (int2hex (template-curtime tmpl)))
+        (bits    (template-bits tmpl))
+        (nonc    (bytevector->base16-string (string->utf8 "NONC"))))
+    (string-append version
+                   prev
+                   root
+                   curtime
+                   bits
+                   nonc)))
+
+(define-method (test-block-header (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template (result-result res))))
+    (assert-equal "04000020000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8ec5fff939f628a04428c080ed5bd7cd9bc0b4722b2522743049adb18213adf28a1b892f61170ffaa04e4f4e43"
+                  (make-block-header tmpl))))
