@@ -17,13 +17,14 @@
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (prospect rpc)
+  #:use-module (gcrypt base16)
+  #:use-module (gcrypt hash)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 textual-ports)
-  #:use-module (srfi srfi-43)
   #:use-module (json)
   #:use-module (oop goops)
-  #:use-module (prospect util)
   #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-43)
   #:use-module (unit-test)
   #:use-module (web client)
   #:use-module (web response)
@@ -91,8 +92,8 @@
   (capabilities))
 
 (define-json-type <transaction>
-  (data)
   (txid)
+  (data)
   (hash)
   (depends)
   (fee)
@@ -142,21 +143,6 @@
          (r (post "getblocktemplate" (vector (template-request->scm t)))))
     (scm->template (result-result r))))
 
-(define (merkle-root tmpl)
-  "Returns the templates Merle for transactions."
-  (let ((txns (template-transactions tmpl)))
-    #t
-    ;; (vector-map (lambda (i v)
-    ;;               (display (transaction-data (scm->transaction v)))
-    ;;               (newline))
-    ;;             txns)
-    ))
-
-(define-method (test-merkle-root (self <test-rpc>))
-  (let* ((res  (read-json "data.json"))
-         (tmpl (scm->template (result-result res))))
-    (merkle-root tmpl)))
-
 (define (read-json file)
   "Reads the json @var{file} and returns the json string as a <result>"
   (json->result
@@ -167,9 +153,106 @@
          (tmpl (scm->template (result-result res))))
     (assert-true (result? res))
     (assert-true (template? tmpl))
-    ;; (assert-equal "01000000016a6b6d414af172bf9c9aa7e25892628f881907db9ad97c11d34b5bd10420d3a5010000006b483045022100f4ef04168af7bcb3f08fe061280517df1a696623125c0769c5df4e554d522621022052a1d775bfe1a6f10dd888d1f17f0354745a090ef88e82476cf4307795151ad9012102195646c22ab419c14599106960cc8587266cc0ad2189861c44c5eb3dfa771d3cffffffff0228d41e00000000001976a914b44218565b0bdd80c1cc7962c11df1150f3641f988ac34f30a23000000001976a9147452552d6ca38bbfc20f3d95dd3dbb4849a33f7d88ac00000000"
-    ;;               (vector-ref (template-transactions tmpl) 0))
     (assert-equal 105 (vector-length (template-transactions tmpl)))))
+
+(define (read-template)
+  "Returns a <template> after reading data.json"
+  (scm->template (result-result (read-json "data.json"))))
+
+(define-method (test-read-tmpl (self <test-rpc>))
+  (assert-true (template? (read-template))))
+
+(define (template->txns tmpl)
+  "Returns then transactions for @var{tmpl} as a vector of <transaction>"
+  (vector-map (lambda (i v)
+                (scm->transaction v))
+              (template-transactions tmpl)))
+
+(define-method (test-template->txns (self <test-rpc>))
+  (let* ((tmpl (read-template))
+         (txns (template->txns tmpl)))
+    (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
+                  (transaction-hash (vector-ref txns 0)))))
+
+(define (hash-txn i txn)
+  "Returns a double hash for @var{txn}"
+  (let ((data (transaction-data txn)))
+    (bytevector->base16-string
+     (sha256 (sha256 (base16-string->bytevector data))))))
+
+(define-method (test-hash-txn (self <test-rpc>))
+  (let* ((tmpl  (read-template))
+         (txns  (template->txns tmpl))
+         (hashs (vector-map hash-txn txns)))
+    (assert-equal "9a44d2fb497b7818863931fb35fa8ca74c0c3b5c6c1a641f790b1926759352ab"
+                  (vector-ref hashs 0))
+    (assert-equal "641df143b423afc16af61c7d256f452beb2a60a6377c64b13262af4e90afa2ab"
+                  (vector-ref hashs (1- (vector-length hashs))))))
+
+(define (read-hashes)
+  "Returns a list of hashes read from test data file"
+  (call-with-input-file "hashes.scm" read))
+
+(define-method (test-read-hashes (self <test-rpc>))
+  (let ((hashes (read-hashes)))
+    (assert-equal 105 (length hashes))
+    (assert-equal "9a44d2fb497b7818863931fb35fa8ca74c0c3b5c6c1a641f790b1926759352ab"
+                  (list-ref hashes 0))
+    (assert-equal "652b0d859ee218719fb0faeba7e11ede6a71a546710c12d4b224f73bc184c288"
+                  (list-ref hashes 52))
+    (assert-equal "641df143b423afc16af61c7d256f452beb2a60a6377c64b13262af4e90afa2ab"
+                   (list-ref hashes 104))))
+
+(define (double-sha256 a b)
+  "Returns a double base16 sha256 hash for a pair of base16 strings"
+  (let* ((str (string-append a b))
+         (bv  (base16-string->bytevector str)))
+    (bytevector->base16-string (sha256 (sha256 bv)))))
+
+(define-method (test-double-sha256 (self <test-rpc>))
+  (assert-equal "c5530ae62eff821c5d2942b3e4b64b73df726cec6244a29656295df56e91a8d8"
+                (double-sha256
+                 "9a44d2fb497b7818863931fb35fa8ca74c0c3b5c6c1a641f790b1926759352ab"
+                 "7e7dcdf355768a031caec139c148f35a77dd5d2fcea8e4684c3fe25e10ebf215")))
+
+(define (hash-list lst)
+  "Loops through @var{lst} and hashes all of it's pairs eventually
+returning a merkle root."
+  (let ((tree '())
+        (len  (1- (length lst))))
+
+    (define (append-tree a b)
+      "Appends a double hash to the tree"
+      (set! tree (append! tree `(,(double-sha256 a b)))))
+
+    (do ((i 0 (+ i 2)))
+        ((> i len))
+      ;; Concatenate the first two elements and then double hash. If
+      ;; the element is the last in the list then concatenate it's
+      ;; self and then double hash.
+      (if (< i len)
+          (append-tree (list-ref lst i) (list-ref lst (1+ i)))
+          (append-tree (list-ref lst i) (list-ref lst i))))
+
+    (if (> (length tree) 1)
+        (hash-list tree)
+        (car tree))))
+
+(define-method (test-hash-list (self <test-rpc>))
+  (assert-equal "c5fff939f628a04428c080ed5bd7cd9bc0b4722b2522743049adb18213adf28a"
+                (hash-list (read-hashes))))
+
+(define (merkle-root tmpl)
+  "Returns the templates merkle root for transactions."
+  (let* ((txns   (template->txns tmpl))
+         (hashes (vector->list (vector-map hash-txn txns))))
+    (hash-list hashes)))
+
+(define-method (test-merkle-root (self <test-rpc>))
+  (let* ((res  (read-json "data.json"))
+         (tmpl (scm->template (result-result res))))
+    (assert-equal "c5fff939f628a04428c080ed5bd7cd9bc0b4722b2522743049adb18213adf28a"
+                (merkle-root tmpl))))
 
 (define-method (test-template (self <test-rpc>))
   (let* ((res  (read-json "data.json"))
