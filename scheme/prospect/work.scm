@@ -38,7 +38,7 @@ base16 string the endianness is big"
      (hash-header bv))))
 
 ;; Simulate proof of work with two rounds. The starting nonce is one less
-;; then a know found nonce.
+;; then a known nonce.
 (define-method (test-work-rounds (self <test-work>))
   (let* ((version "02000000")
 	 (prev    "17975b97c18ed1f7e255adf297599b55330edab87803c8170100000000000000")

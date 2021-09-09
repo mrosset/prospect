@@ -133,7 +133,7 @@
 (define-method (test-chain-info (self <test-rpc>))
   (let ((info (chain-info)))
     (assert-true (chain-info? info))
-    (assert-equal "main" (chain-info-chain info))))
+    (assert-equal "regtest" (chain-info-chain info))))
 
 (define-method (test-info (self <test-rpc>))
   (assert-true #t))
@@ -144,6 +144,9 @@
                                    cap))
          (r (post "getblocktemplate" (vector (template-request->scm t)))))
     (scm->template (result-result r))))
+
+(define-method (test-get-template (self <test-rpc>))
+  (get-block-template))
 
 (define (read-json file)
   "Reads the json @var{file} and returns the json string as a <result>"
@@ -294,10 +297,14 @@ returning a merkle root."
   (format port ";;\t bits    : ~a\n" (header-bits self))
   (format port ";;\t nonc    : ~a>\n" (header-nonc self)))
 
+(define-method (header? (self <header>))
+  (equal? <header> (class-of self)))
+
 (define-method (test-header (self <test-rpc>))
   (let* ((res  (read-json "data.json"))
          (tmpl (scm->template (result-result res)))
          (hdr  (make <header> #:tmpl tmpl)))
+    (assert-true (header? hdr))
     (assert-equal <header> (class-of hdr))
     (assert-equal "04000020" (header-version hdr))
     (assert-equal "000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8e"

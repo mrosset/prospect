@@ -24,7 +24,8 @@
   #:use-module (gcrypt base16)
   #:export (difficulty
             int2hex
-            dlog
+            hex->number
+            olog
             swap-order))
 
 (define-class <test-util> (<test-case>))
@@ -38,6 +39,13 @@
           (swap (string-append n sub) (+ i 2)))
         (string-reverse n))))
 
+(define (hex->number str)
+  "Converts a hexadecimal @var{str} to integer"
+  (string->number (string-append "#x" str)))
+
+(define-method (test-hex->number (self <test-util>))
+  (assert-equal 386923168 (hex->number "170ffaa0")))
+
 ;; 0x0404cb * 2**(8*(0x1b - 3))
 (define (difficulty bits)
   "Returns the target hash for difficulty @var{bits}"
@@ -47,7 +55,9 @@
 
 (define-method (test-diff (self <test-util>))
   (assert-equal "00000000000000015f5300000000000000000000000000000000000000000000"
-                (difficulty #x19015f53)))
+                (difficulty #x19015f53))
+  (assert-equal "00000000000000015f5300000000000000000000000000000000000000000000"
+                (difficulty (hex->number "19015f53"))))
 
 (define (int2hex int)
   "Converts a integer to a hex string."
@@ -65,7 +75,6 @@
   (assert-equal "42a14695" (int2hex 2504433986))
   (assert-equal "00000000" (int2hex 0)))
 
-
-(define* (dlog prefix #:optional (obj ""))
+(define* (olog prefix #:optional (obj ""))
   (format #t ";; ~a ~a\n" prefix obj)
   obj)
