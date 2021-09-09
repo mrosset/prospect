@@ -22,3 +22,6 @@ SUBDIRS = scheme test-suite
 
 repl: all
 	./pre-inst-env guile
+
+py-merkle:
+	python ./scripts/merkle.py
