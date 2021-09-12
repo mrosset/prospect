@@ -45,7 +45,22 @@ AC_CONFIG_FILES([
 Makefile
 scheme/Makefile
 test-suite/Makefile
+test-suite/c-test/Makefile
 ])
+
+PKG_CHECK_MODULES([JANSSON], [jansson])
+
+m4_ifdef([AM_PATH_LIBGCRYPT], [
+	AM_PATH_LIBGCRYPT([],
+		[
+			have_libgcrypt=yes
+		],[
+			have_libgcrypt=no
+		])
+],[
+	m4_warn([syntax], [AM_PATH_LIBGCRYPT missing; example and tests will not be available])
+])
+AM_CONDITIONAL([HAVE_LIBGCRYPT], [test x$have_libgcrypt = xyes])
 
 AC_CONFIG_FILES([pre-inst-env],[chmod +x pre-inst-env])
 

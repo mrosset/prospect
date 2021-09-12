@@ -16,31 +16,18 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = . c-test
 
-# TESTS  = tests/tests.scm
+bin_PROGRAMS = blktest
 
-TEST_EXTENSIONS = .scm
+blktest_SOURCES = blktest.c
 
-TESTS_ENVIRONMENT = \
-	$(abs_top_builddir)/pre-inst-env		\
-	$(GUILE) -L $(abs_top_builddir)/test-suite	\
-		 --no-auto-compile -s test-runner
+blktest_CFLAGS = -I../../libblkmaker $(JANSSON_CFLAGS) $(LIBGCRYPT_CFLAGS)
 
-EXTRA_DIST = \
-	$(TESTS)
+blktest_LDFLAGS = -L../../libblkmaker/.libs -lblkmaker-0.1 -lblkmaker_jansson-0.1 $(LIBGCRYPT_LIBS)
 
-test-list:
-	echo $(TESTS)
+# check-local: all
+#	./blktest
 
-do_subst = sed -e 's,[@]GUILE[@],$(GUILE),g'	\
-		-e 's,[@]LIBDIR[@],$(libdir),g' \
-		-e 's,[@]CCACHEDIR[@],$(SITECCACHEDIR),g'
+TESTS = blktest
 
-all-local: test-runner
-
-CLEANFILES =  test-runner
-
-test-runner: test-runner.in
-	$(do_subst) < $< > $@
-	chmod +x $@
+test_SOURCES = test.c
