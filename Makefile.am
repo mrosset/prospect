@@ -18,7 +18,7 @@
 
 ACLOCAL_AMFLAG = -I m4
 
-SUBDIRS = scheme test-suite
+SUBDIRS = libblkmaker scheme test-suite
 
 repl: all
 	./pre-inst-env guile
