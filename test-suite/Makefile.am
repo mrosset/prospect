@@ -18,7 +18,7 @@
 
 SUBDIRS = . c-test
 
-# TESTS  = tests/tests.scm
+TESTS  = tests/tests.scm
 
 TEST_EXTENSIONS = .scm
 

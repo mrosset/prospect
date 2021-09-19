@@ -42,12 +42,11 @@
 (define default-cap #("coinbasetxn"
                       "workid"
                       "coinbase/append"
-                      ;; "time/increment"
-                      ;; "version/force"
-                      ;; "version/reduce"
-                      ;; "submit/coinbase"
-                      ;; "submit/truncate"
-                      ))
+                      "time/increment"
+                      "version/force"
+                      "version/reduce"
+                      "submit/coinbase"
+                      "submit/truncate"))
 
 (define-json-type <result>
   (result)
@@ -123,6 +122,21 @@
   (height)
   (default-witness-commitment))
 
+(define* (get-block-template #:key (cap default-cap))
+  "Returns a mining block template"
+  (let* ((t (make-template-request #("segwit")
+                                   cap))
+         (r (post "getblocktemplate" (vector (template-request->scm t)))))
+    (scm->template (result-result r))))
+
+(define-method (test-get-template (self <test-rpc>))
+  (let ((tmpl (get-block-template)))
+    (unless (file-exists? "data.json")
+      (with-output-to-file "data.json"
+        (lambda _
+          (display (scm->json-string (template->scm tmpl) #:pretty #t)))))
+    (assert-true (template? tmpl))))
+
 (define (chain-info)
   "Returns blockchain information"
   (let ((r (post "getblockchaininfo" '())))
@@ -133,20 +147,11 @@
 (define-method (test-chain-info (self <test-rpc>))
   (let ((info (chain-info)))
     (assert-true (chain-info? info))
-    (assert-equal "regtest" (chain-info-chain info))))
+    (assert-true (or (equal? "main" (chain-info-chain info))
+                     (equal? "regtest" (chain-info-chain info))))))
 
 (define-method (test-info (self <test-rpc>))
   (assert-true #t))
-
-(define* (get-block-template #:key (cap default-cap))
-  "Returns a mining block template"
-  (let* ((t (make-template-request #("segwit")
-                                   cap))
-         (r (post "getblocktemplate" (vector (template-request->scm t)))))
-    (scm->template (result-result r))))
-
-(define-method (test-get-template (self <test-rpc>))
-  (get-block-template))
 
 (define (read-json file)
   "Reads the json @var{file} and returns the json string as a <result>"
