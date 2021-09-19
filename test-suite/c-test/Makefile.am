@@ -16,17 +16,13 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 bin_PROGRAMS = blktest
 
 blktest_SOURCES = blktest.c
 
-blktest_CFLAGS = -I../../libblkmaker $(JANSSON_CFLAGS) $(LIBGCRYPT_CFLAGS)
+blktest_CFLAGS = -I../../libblkmaker $(JANSSON_CFLAGS) $(LIBGCRYPT_CFLAGS) -g
 
-blktest_LDFLAGS = -L../../libblkmaker/.libs -lblkmaker-0.1 -lblkmaker_jansson-0.1 $(LIBGCRYPT_LIBS)
-
-# check-local: all
-#	./blktest
+blktest_LDFLAGS = -L../../libblkmaker/.libs -lblkmaker-0.1 -lblkmaker_jansson-0.1 $(JANSSON_LIBS) $(LIBGCRYPT_LIBS)
 
 TESTS = blktest
 

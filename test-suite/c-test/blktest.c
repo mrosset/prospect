@@ -18,12 +18,15 @@
  */
 
 #include <assert.h>
+#include <inttypes.h>
 
 #include <gcrypt.h>
 
 #include "blktemplate.h"
 #include <blkmaker.h>
 #include <blkmaker_jansson.h>
+
+static const time_t simple_time_rcvd = 0x777;
 
 static bool
 my_sha256 (void *digest, const void *buffer, size_t length)
@@ -32,98 +35,86 @@ my_sha256 (void *digest, const void *buffer, size_t length)
   return true;
 }
 
+static const char *
+hash2hex (libblkmaker_hash_t hash)
+{
+  char *hex = (char *)malloc (64 + 1);
+
+  hex[0] = 0;
+
+  for (int i = 7; i >= 0; i--)
+    {
+      char add[9];
+      sprintf (add, "%08" PRIx32, hash[i]);
+      strcat (hex, add);
+    }
+
+  return hex;
+}
+
 int
-main_old ()
+main ()
 {
   blktemplate_t *tmpl;
+  /* uint8_t data[76], *cbtxn, *branches;
+   * size_t cbextranonceoffset, cbtxnsize;
+   * int branchcount;
+   * int16_t i16; */
   json_t *json;
   json_error_t error;
-  const time_t simple_time_rcvd = 0x777;
-  const char *err;
+  const char *json_error;
+
+  blkmk_sha256_impl = my_sha256;
 
   tmpl = blktmpl_create ();
 
   assert (tmpl);
-  /* json = blktmpl_request_jansson(blktmpl_addcaps(tmpl), NULL); */
-  /* assert(json); */
+  json = blktmpl_request_jansson (blktmpl_addcaps (tmpl), NULL);
+  assert (json);
 
-  json = json_load_file ("../data.json", 0, &error);
+  json = json_load_file ("/home/mrosset/src/prospect/test-suite/data.json", 0,
+                         &error);
+
   if (!json)
     {
       fprintf (stderr, "ERROR: %s\n", error.text);
       assert (0 && "Error loading test data");
     }
 
-  err = blktmpl_add_jansson (tmpl, json, simple_time_rcvd);
+  json_error = blktmpl_add_jansson (tmpl, json, simple_time_rcvd);
   json_decref (json);
 
-  if (err)
+  if (json_error)
     {
-      fprintf (stderr, "Error adding block template: %s", err);
+      fprintf (stderr, "Error adding block template: %s", json_error);
       assert (0 && "Error adding block template");
     }
 
-  uint8_t data[76], *cbtxn, *branches, extranonce[10];
-  size_t cbextranonceoffset, cbtxnsize;
-  size_t datasz;
-  unsigned int dataid;
-  int branchcount;
-  int16_t i16;
-
-  /* uint32_t nonce; */
-  bool newcb = true;
-
   assert (blkmk_init_generation (tmpl, NULL, 0));
-  /* assert (blkmk_init_generation3 (tmpl,
-   *                                 "\x04"
-   *                                 "test",
-   *                                 5, &newcb)); */
 
   assert (tmpl->cbtxn);
-  printf ("DATAZ %zu\n", tmpl->cbtxn->datasz);
-  /* assert (tmpl->cbtxn->datasz == 64); */
+  assert (tmpl->txncount == 105);
+  assert (tmpl->cbtxn->datasz == 64);
 
-  blkmk_get_mdata (tmpl, data, sizeof (data), simple_time_rcvd, &i16, &cbtxn,
-                   &cbtxnsize, &cbextranonceoffset, &branchcount, &branches, 5,
-                   false);
-  /* printf ("branch count %d\n", branchcount); */
-  /* datasz
-   *   = blkmk_get_data (tmpl, data, sizeof (data), simple_time_rcvd, &i16,
-   * &dataid); printf("%zu\n", datasz); */
-  /* assert (datasz >= 76); */
-  /* printf ("SIZE: %zu\n", datasz); */
+  unsigned char data[80], hash[32];
+  size_t datasz;
+  unsigned int dataid;
+  uint32_t nonce;
 
-  return 0;
-}
+  datasz = blkmk_get_data (tmpl, data, sizeof (data), simple_time_rcvd, NULL,
+                           &dataid);
 
-static const char *
-blktmpl_add_jansson_str (blktemplate_t *const tmpl, const char *const s,
-                         const time_t time_rcvd)
-{
-  json_t *const j = json_loads (s, 0, NULL);
-  assert (j);
-  const char *const rv = blktmpl_add_jansson (tmpl, j, time_rcvd);
-  json_decref (j);
-  return rv;
-}
+  assert (datasz == 76);
 
-static const time_t simple_time_rcvd = 0x777;
+  printf ("%s\n", hash2hex (*tmpl->_mrklbranch));
+  /* printf ("DATA: %zu\n", datasz); */
+  /* blkmk_get_mdata (tmpl, data, sizeof (data), simple_time_rcvd, &i16,
+   * &cbtxn, &cbtxnsize, &cbextranonceoffset, &branchcount, &branches, 0,
+   *                  true); */
 
-int
-main ()
-{
-  blktemplate_t *tmpl = blktmpl_create ();
-  uint8_t data[76], *cbtxn, *branches;
-  size_t cbextranonceoffset, cbtxnsize;
-  int branchcount;
-  int16_t i16;
+  /* printf ("HASH: %s \n", branches); */
+  /* printf ("%08" PRIx8 "\n", branches); */
+  /* printf ("HASH: %08" PRIx32 " \n", branches); */
 
-  // clang-format off
-  assert(!blktmpl_add_jansson_str(tmpl, "{\"version\":3,\"height\":4,\"bits\":\"1d007fff\",\"curtime\":877,\"previousblockhash\":\"00000000a7777777a7777777a7777777a7777777a7777777a7777777a7777777\",\"coinbasevalue\":640,\"sigoplimit\":100,\"sizelimit\":1000,\"transactions\":[{\"data\":\"01000000019999999999999999999999999999999999999999999999999999999999999999aaaaaaaa00222222220100100000015100000000\",\"required\":true},{\"hash\":\"8eda1a8b67996401a89af8de4edd6715c23a7fb213f9866e18ab9d4367017e8d\",\"data\":\"01000000011c69f212e62f2cdd80937c9c0857cedec005b11d3b902d21007c932c1c7cd20f0000000000444444440100100000015100000000\",\"depends\":[1],\"fee\":12,\"required\":false,\"sigops\":4},{\"data\":\"01000000010099999999999999999999999999999999999999999999999999999999999999aaaaaaaa00555555550100100000015100000000\"}],\"coinbasetxn\":{\"data\":\"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff07010404deadbeef333333330100100000015100000000\"},\"workid\":\"mywork\",\"mutable\":[\"submit/coinbase\",\"submit/truncate\",\"coinbase/append\"],\"expires\":99}", simple_time_rcvd));
-
-  // clang-format on
-  /* assert (blkmk_get_mdata (tmpl, data, sizeof (data), simple_time_rcvd,
-   * &i16, &cbtxn, &cbtxnsize, &cbextranonceoffset,
-   *                          &branchcount, &branches, 1, false)); */
   return 0;
 }
