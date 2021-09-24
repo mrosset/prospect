@@ -106,7 +106,12 @@ main ()
 
   assert (datasz == 76);
 
-  printf ("%s\n", hash2hex (*tmpl->_mrklbranch));
+  const char *h = hash2hex (tmpl->prevblk);
+  /* printf ("%s\n", hash2hex (*tmpl->_mrklbranch)); */
+
+  // clang-format off
+  assert (strcmp (h, "000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8e") == 0);
+  // clang-format on
   /* printf ("DATA: %zu\n", datasz); */
   /* blkmk_get_mdata (tmpl, data, sizeof (data), simple_time_rcvd, &i16,
    * &cbtxn, &cbtxnsize, &cbextranonceoffset, &branchcount, &branches, 0,
