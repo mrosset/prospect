@@ -20,6 +20,9 @@ else
 fi
 export GUILE_LOAD_COMPILED_PATH
 
+# FIXME: Don't use this. The system should provide libraries.
+export LTDL_LIBRARY_PATH=$HOME/.guix-profile/lib
+
 exec @abs_top_builddir@/libtool --mode=execute \
      -dlopen "@abs_top_builddir@/libblkmaker/.libs/libblkmaker-0.1.la"\
      "$@"
