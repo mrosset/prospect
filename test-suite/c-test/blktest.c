@@ -69,8 +69,6 @@ main ()
   tmpl = blktmpl_create ();
 
   assert (tmpl);
-  json = blktmpl_request_jansson (blktmpl_addcaps (tmpl), NULL);
-  assert (json);
 
   json = json_load_file ("/home/mrosset/src/prospect/test-suite/data.json", 0,
                          &error);
