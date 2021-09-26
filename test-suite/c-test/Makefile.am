@@ -20,9 +20,9 @@ bin_PROGRAMS = blktest
 
 blktest_SOURCES = blktest.c
 
-blktest_CFLAGS = -I../../libblkmaker $(JANSSON_CFLAGS) $(LIBGCRYPT_CFLAGS) -g
+blktest_CFLAGS  = $(BLKMK_CFLAGS) $(JANSSON_CFLAGS) $(LIBGCRYPT_CFLAGS) -g
 
-blktest_LDFLAGS = -L../../libblkmaker/.libs -lblkmaker-0.1 -lblkmaker_jansson-0.1 $(JANSSON_LIBS) $(LIBGCRYPT_LIBS)
+blktest_LDFLAGS = $(BLKMK_LIBS) $(JANSSON_LIBS) $(LIBGCRYPT_LIBS)
 
 TESTS = blktest
 

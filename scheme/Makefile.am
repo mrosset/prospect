@@ -30,7 +30,7 @@ CLEANFILES = $(GOBJECTS)
 
 lib_LTLIBRARIES = libguile-prospect.la
 libguile_prospect_la_SOURCES = extention.c
-libguile_prospect_la_CFLAGS  = -I../libblkmaker $(GUILE_CFLAGS)
-libguile_prospect_la_LDFLAGS = -L../libblkmaker/.libs -lblkmaker-0.1
+libguile_prospect_la_CFLAGS  = $(GUILE_CFLAGS) $(BLKMK_CFLAGS)
+libguile_prospect_la_LDFLAGS = $(BLKMK_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}

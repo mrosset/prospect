@@ -49,6 +49,7 @@ test-suite/c-test/Makefile
 ])
 
 PKG_CHECK_MODULES([JANSSON], [jansson])
+PKG_CHECK_MODULES([BLKMK], [libblkmaker_jansson-0.1])
 
 m4_ifdef([AM_PATH_LIBGCRYPT], [
 	AM_PATH_LIBGCRYPT([],
@@ -63,8 +64,5 @@ m4_ifdef([AM_PATH_LIBGCRYPT], [
 AM_CONDITIONAL([HAVE_LIBGCRYPT], [test x$have_libgcrypt = xyes])
 
 AC_CONFIG_FILES([pre-inst-env],[chmod +x pre-inst-env])
-
-dnl Sub project
-AC_CONFIG_SUBDIRS([libblkmaker])
 
 AC_OUTPUT
