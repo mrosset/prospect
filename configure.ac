@@ -56,13 +56,15 @@ m4_ifdef([AM_PATH_LIBGCRYPT], [
 ])
 AM_CONDITIONAL([HAVE_LIBGCRYPT], [test x$have_libgcrypt = xyes])
 
-AC_CONFIG_FILES([pre-inst-env],[chmod +x pre-inst-env])
 
 AC_CONFIG_FILES([
 Makefile
+scripts/Makefile
 scheme/Makefile
 test-suite/Makefile
 test-suite/c-test/Makefile
 ])
+
+AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 
 AC_OUTPUT

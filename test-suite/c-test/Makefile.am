@@ -26,4 +26,6 @@ blktest_LDFLAGS = $(BLKMK_LIBS) $(JANSSON_LIBS) $(LIBGCRYPT_LIBS)
 
 TESTS = blktest
 
+TESTS_ENVIRONMENT = ../../pre-inst-env
+
 test_SOURCES = test.c

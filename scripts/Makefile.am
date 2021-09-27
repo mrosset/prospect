@@ -16,20 +16,10 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.NOTPARALLEL:
+do_subst = sed -e 's,[@]GUILE[@],$(GUILE),g'	\
+		-e 's,[@]LIBDIR[@],$(libdir),g' \
+		-e 's,[@]CCACHEDIR[@],$(ccachedir),g'
 
-ACLOCAL_AMFLAG = -I m4
-
-SUBDIRS = scripts scheme test-suite
-
-repl: all
-	./pre-inst-env guile
-
-py-merkle:
-	python ./scripts/merkle.py
-
-debug: all
-	./pre-inst-env gdb --args guile scripts/debug.scm
-
-run: scripts
-	./pre-inst-env guile scripts/debug.scm
+debug: debug.in
+	$(do_subst) < $< > $@
+	chmod +x $@

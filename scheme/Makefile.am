@@ -21,8 +21,8 @@ include $(top_srcdir)/am/guile.mk
 ## Guile extention
 lib_LTLIBRARIES = libguile-prospect.la
 libguile_prospect_la_SOURCES = extention.c
-libguile_prospect_la_CFLAGS  = $(GUILE_CFLAGS) $(BLKMK_CFLAGS)
-libguile_prospect_la_LDFLAGS = $(BLKMK_LIBS)
+libguile_prospect_la_CFLAGS  = $(GUILE_CFLAGS) $(BLKMK_CFLAGS) -fPIC  -g
+libguile_prospect_la_LDFLAGS = $(BLKMK_LIBS) $(LIBGCRYPT_LIBS)
 
 ## Guile scheme
 SOURCES  = prospect/util.scm

@@ -56,10 +56,6 @@ int
 main ()
 {
   blktemplate_t *tmpl;
-  /* uint8_t data[76], *cbtxn, *branches;
-   * size_t cbextranonceoffset, cbtxnsize;
-   * int branchcount;
-   * int16_t i16; */
   json_t *json;
   json_error_t error;
   const char *json_error;
@@ -104,11 +100,13 @@ main ()
 
   assert (datasz == 76);
 
-  const char *h = hash2hex (tmpl->prevblk);
+  const char *prev_hex = hash2hex (tmpl->prevblk);
+  const char *merkle = hash2hex (tmpl->_mrklbranch);
   /* printf ("%s\n", hash2hex (*tmpl->_mrklbranch)); */
 
   // clang-format off
-  assert (strcmp (h, "000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8e") == 0);
+  assert (strcmp (prev_hex, "000000000000000000095302283803967a66414cd23b452ebea94e745d3abc8e") == 0);
+  assert (strcmp (merkle, "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a") == 0);
   // clang-format on
   /* printf ("DATA: %zu\n", datasz); */
   /* blkmk_get_mdata (tmpl, data, sizeof (data), simple_time_rcvd, &i16,

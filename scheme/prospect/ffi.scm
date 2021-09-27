@@ -119,71 +119,20 @@
     (assert-true (null-pointer? (add-jansson tmpl json 0)))
     (assert-true (init-generation tmpl %null-pointer 0))))
 
-(define get-data
-  (foreign-library-function
-   libblkmaker-jansson
-   "blkmk_get_data"
-   #:return-type size_t
-   #:arg-types (list '* '* size_t long '* '*)))
-
 (define-method (test-get-data (self <test-ffi>))
   (let* ((tmpl   (make-template))
-	 (file   (string->pointer "data.json"))
-	 (json   (json-load-file file 0 %null-pointer))
-	 (data   (make-string 80 #\0))
-	 (datasz 0))
-    (assert-true (null-pointer? (add-jansson tmpl json 0)))
-    (assert-true (init-generation tmpl %null-pointer 0))
-    (assert-true (test-prospect))
-    ;; (set! datasz (get-data tmpl
-    ;;			   (string->pointer data)
-    ;;			   80
-    ;;			   0
-    ;;			   (scm->pointer 0)
-    ;;			   (scm->pointer 0)))
-    ))
-
-;; (define get-data-basic
-;;   (foreign-library-function
-;;    libblkmaker-jansson
-;;    "blkmk_get_data_basic"
-;;    #:return-type '*
-;;    #:arg-types (list '* '* intptr_t)))
+       (file   (string->pointer "data.json"))
+       (json   (json-load-file file 0 %null-pointer)))
+  (assert-true (prospect-extention?))
+  (assert-true (pointer? tmpl))
+  (assert-true (pointer? file))
+  (assert-true (pointer? json))
+  (assert-true (null-pointer? (add-jansson tmpl json 0)))
+  (assert-true (init-generation tmpl %null-pointer 0))
+  (assert-equal 76 (get-data tmpl))
+  (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
+		(merkle-root tmpl))))
 
 (define (request->string req)
   "Returns the json string for @var{req}"
   (pointer->string (json-dumps req 2)))
-
-;; (define-method (test-get-data (self <test-ffi>))
-;;   (let* ((tmpl (make-template))
-;;	 (req  (begin (assert-false (null-pointer? tmpl))
-;;		      (request-jansson (add-caps tmpl)
-;;				       %null-pointer)))
-;;	 (rstr (begin (assert-true (not (null-pointer? req)))
-;;		      (display (request->string req))
-;;		      (post-json (request->string req))))
-;;	 (res  (begin (assert-true (string? rstr))
-;;		      (call-with-output-file "data.json"
-;;			(lambda (port)
-;;			  (let ((j (scm->json-string (json-string->scm rstr) #:pretty #t)))
-;;			    (display j port))))
-;;		      (json-loads (string->pointer rstr)
-;;				  0
-;;			  %null-pointer)))
-;;	 (data (begin (assert-false (null-pointer? res))
-;;		      ;; (add-jansson tmpl res (current-time))
-;;		      (get-data-basic tmpl res 0)
-;;		      )))
-;;     #t
-;;     ;; (assert-true (string? (pointer->string data)))
-;;     ;; (assert-true (string? (dimi (pointer->string data))))
-;;     ))
-
-;; (define-method (test-request (self <test-ffi>))
-;;   (let* ((tmpl  (make-template))
-;;	 (req   (request-jansson (add-caps tmpl)
-;;				 %null-pointer))
-;;	 (res  (post-json (dimi (request->string req)))))
-;;     (assert-true (pointer? req))
-;;     (assert-true (string? (request->string req)))
-;;     (assert-true (string?  res))))

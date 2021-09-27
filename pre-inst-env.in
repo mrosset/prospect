@@ -20,7 +20,8 @@ fi
 export GUILE_LOAD_COMPILED_PATH
 
 # FIXME: Don't use this. The system should provide libraries.
-export LTDL_LIBRARY_PATH="$HOME/.guix-profile/lib:@abs_top_builddir@/scheme/.libs"
+export LD_LIBRARY_PATH="$HOME/local/lib"
+export LTDL_LIBRARY_PATH="$HOME/local/lib:$HOME/.guix-profile/lib:@abs_top_builddir@/scheme/.libs"
 
 exec "$@"
 
