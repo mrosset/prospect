@@ -18,6 +18,12 @@
 
 include $(top_srcdir)/am/guile.mk
 
+## Guile extention
+lib_LTLIBRARIES = libguile-prospect.la
+libguile_prospect_la_SOURCES = extention.c
+libguile_prospect_la_CFLAGS  = $(GUILE_CFLAGS) $(BLKMK_CFLAGS)
+libguile_prospect_la_LDFLAGS = $(BLKMK_LIBS)
+
 ## Guile scheme
 SOURCES  = prospect/util.scm
 SOURCES += prospect/work.scm
@@ -25,12 +31,3 @@ SOURCES += prospect/rpc.scm
 SOURCES += prospect/ffi.scm
 
 CLEANFILES = $(GOBJECTS)
-
-## Guile extention
-
-lib_LTLIBRARIES = libguile-prospect.la
-libguile_prospect_la_SOURCES = extention.c
-libguile_prospect_la_CFLAGS  = $(GUILE_CFLAGS) $(BLKMK_CFLAGS)
-libguile_prospect_la_LDFLAGS = $(BLKMK_LIBS)
-
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}

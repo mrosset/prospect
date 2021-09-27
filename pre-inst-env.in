@@ -2,7 +2,6 @@
 export GUILE_AUTO_COMPILE=0
 
 # GUILE_LOAD_PATH
-
 if [ x"$GUILE_LOAD_PATH" = x ]
 then
     GUILE_LOAD_PATH="@abs_top_builddir@/scheme"
@@ -21,11 +20,9 @@ fi
 export GUILE_LOAD_COMPILED_PATH
 
 # FIXME: Don't use this. The system should provide libraries.
-export LTDL_LIBRARY_PATH=$HOME/.guix-profile/lib
+export LTDL_LIBRARY_PATH="$HOME/.guix-profile/lib:@abs_top_builddir@/scheme/.libs"
 
-exec @abs_top_builddir@/libtool --mode=execute \
-     -dlopen "@abs_top_builddir@/scheme/.libs/libguile-prospect.la" \
-     "$@"
+exec "$@"
 
 # Local Variables:
 # mode: sh
