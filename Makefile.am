@@ -16,12 +16,25 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.NOTPARALLEL:
-
 ACLOCAL_AMFLAG = -I m4
 
-SUBDIRS = scripts scheme test-suite
+.NOTPARALLEL:
 
+SUBDIRS = . scripts scheme test-suite
+
+do_subst = sed -e 's,[@]abs_top_builddir[@],$(abs_top_builddir),g' \
+	-e 's,[@]SHELL[@],$(SHELL),g'
+
+## Pre Environment Script
+bin_SCRIPTS = pre-inst-env
+
+CLEANFILES = $(bin_SCRIPTS)
+
+pre-inst-env: pre-inst-env.in
+	$(do_subst) < $< > $@
+	chmod +x $@
+
+## Utility Targets
 repl: all
 	./pre-inst-env guile
 

@@ -64,6 +64,4 @@ scheme/Makefile
 test-suite/Makefile
 ])
 
-AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
-
 AC_OUTPUT
