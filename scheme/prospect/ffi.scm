@@ -133,6 +133,24 @@
   (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
 		(merkle-root tmpl))))
 
+
+(define-method (test-extention-c (self <test-ffi>))
+  (assert-true (test-c)))
+
+;; (define time-left
+;;   (foreign-library-function
+;;    libblkmaker
+;;    "blkmk_time_left"
+;;    #:return-type '*
+;;    #:arg-types (list '* '*)))
+
+;; (define-method (test-mine (self <test-ffi>))
+;;   (let* ((tmpl   (make-template))
+;;	 (file   (string->pointer "data.json"))
+;;	 (json   (json-load-file file 0 %null-pointer)))
+;;     (assert-true (pointer? tmpl))
+;;     (assert-true (mine tmpl))))
+
 (define (request->string req)
   "Returns the json string for @var{req}"
   (pointer->string (json-dumps req 2)))

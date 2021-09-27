@@ -62,7 +62,6 @@ Makefile
 scripts/Makefile
 scheme/Makefile
 test-suite/Makefile
-test-suite/c-test/Makefile
 ])
 
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
