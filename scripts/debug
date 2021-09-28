@@ -1,0 +1,23 @@
+(use-modules (prospect util))
+(set-current-module (resolve-module '(prospect ffi)))
+
+(olog "Starting in" (getcwd))
+;; (let* ((tmpl   (make-template))
+;;	 (file   (string->pointer "test-suite/data.json"))
+;;	 (json   (json-load-file file 0 %null-pointer)))
+;;     (assert-true (prospect-extention?))
+;;     (assert-true (pointer? tmpl))
+;;     (assert-true (pointer? file))
+;;     (assert-true (pointer? json))
+;;     (assert-true (null-pointer? (add-jansson tmpl json 0)))
+;;     (assert-true (init-generation tmpl %null-pointer 0))
+;;     (assert-equal 76 (get-data tmpl))
+;;     (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
+;;		  (merkle-root tmpl)))
+
+(assert-true (test-c-mine "data.json"))
+(olog "Done")
+
+;; Local Variables:
+;; mode: scheme
+;; End:

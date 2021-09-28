@@ -5,8 +5,6 @@
 #include <inttypes.h>
 #include <libguile.h>
 
-static const time_t simple_time_rcvd = 0x777;
-
 static const char *
 hash2hex (libblkmaker_hash_t hash)
 {
@@ -55,35 +53,31 @@ scm_get_data (SCM tmpl)
   unsigned int dataid;
   uint32_t nonce;
 
-  datasz = blkmk_get_data (tmpl_p, data, sizeof (data), simple_time_rcvd, NULL,
+  // The json data file has an old received time, we must set the
+  // received time to now.
+  tmpl_p->_time_rcvd = time (NULL);
+
+  datasz = blkmk_get_data (tmpl_p, data, sizeof (data), time (NULL), NULL,
                            &dataid);
+  assert (datasz > 0);
 
   return scm_from_size_t (datasz);
 }
 
-SCM
-scm_test_c ()
+static blktemplate_t *
+template_from_file (const char *path)
 {
   blktemplate_t *tmpl;
   json_t *json;
   json_error_t error;
   const char *json_error;
-
-  unsigned char data[80], hash[32];
-  size_t datasz;
-  unsigned int dataid;
-  uint32_t nonce;
-
-  blkmk_sha256_impl = my_sha256;
-
   tmpl = blktmpl_create ();
 
   assert (tmpl);
 
-  json = json_load_file ("/home/mrosset/src/prospect/test-suite/data.json", 0,
-                         &error);
+  json = json_load_file (path, 0, &error);
 
-  json_error = blktmpl_add_jansson (tmpl, json, simple_time_rcvd);
+  json_error = blktmpl_add_jansson (tmpl, json, time (NULL));
   json_decref (json);
 
   if (json_error)
@@ -92,14 +86,93 @@ scm_test_c ()
     }
 
   assert (blkmk_init_generation (tmpl, NULL, 0));
+  unsigned char data[80], hash[32];
+  size_t datasz;
+  unsigned int dataid;
+  uint32_t nonce;
 
   assert (tmpl->cbtxn);
   assert (tmpl->txncount == 105);
   assert (tmpl->cbtxn->datasz == 64);
 
-  datasz = blkmk_get_data (tmpl, data, sizeof (data), simple_time_rcvd, NULL,
-                           &dataid);
+  datasz
+      = blkmk_get_data (tmpl, data, sizeof (data), time (NULL), NULL, &dataid);
+
   assert (datasz == 76);
+
+  return tmpl;
+}
+
+SCM
+scm_c_test_mine (SCM json_str)
+{
+  blktemplate_t *tmpl;
+  json_t *json;
+  json_error_t error;
+  const char *error_str;
+
+  tmpl = blktmpl_create ();
+  assert (tmpl);
+
+  json = json_loads (scm_to_locale_string (json_str), 0, &error);
+  assert (json);
+
+  json = blktmpl_request_jansson (blktmpl_addcaps (tmpl), NULL);
+  assert (json);
+
+  // Change receive time to now
+  /* tmpl->_time_rcvd = time (NULL); */
+
+  error_str = blktmpl_add_jansson (tmpl, json, time (NULL));
+
+  if (error_str)
+    {
+      printf (";; Error: %s\n", error_str);
+      assert (0 && "Error adding block template");
+    }
+
+  assert (blkmk_init_generation (tmpl, NULL, 0));
+
+  while (blkmk_time_left (tmpl, time (NULL)) && blkmk_work_left (tmpl))
+    {
+      unsigned char data[80], hash[32];
+      size_t datasz;
+      unsigned int dataid;
+      uint32_t nonce;
+
+      datasz = blkmk_get_data (tmpl, data, sizeof (data), time (NULL), NULL,
+                               &dataid);
+      assert (datasz >= 76 && datasz <= sizeof (data));
+
+      // mine the right nonce this is iterating in native order, even
+      // though SHA256 is big endian, because we don't implement
+      // noncerange however, the nonce is always interpreted as big
+      // endian, so we need to convert it as if it were big endian
+      for (nonce = 0; nonce < 0xffffffff; ++nonce)
+        {
+          *(uint32_t *)(&data[76]) = nonce;
+          assert (my_sha256 (hash, data, 80));
+          assert (my_sha256 (hash, hash, 32));
+          if (!*(uint32_t *)(&hash[28]))
+            break;
+          if (!(nonce % 0x1000))
+            {
+              printf ("0x%8" PRIx32 " hashes done...\r", nonce);
+              fflush (stdout);
+            }
+        }
+      printf ("Found nonce: 0x%8" PRIx32 " \n", nonce);
+      nonce = ntohl (nonce);
+
+      json = blkmk_submit_jansson (tmpl, data, dataid, nonce);
+      assert (json);
+    }
+}
+
+SCM
+scm_c_test_hash (SCM path)
+{
+  blktemplate_t *tmpl = template_from_file (scm_to_locale_string (path));
 
   const char *prev_hex = hash2hex (tmpl->prevblk);
   const char *merkle = hash2hex (tmpl->_mrklbranch);
@@ -112,13 +185,6 @@ scm_test_c ()
   return SCM_BOOL_T;
 }
 
-SCM
-scm_mine (SCM tmpl)
-{
-  blktemplate_t *tmpl_p = scm_to_pointer (tmpl);
-  return SCM_BOOL_T;
-}
-
 void
 init_prospect (void)
 {
@@ -126,6 +192,6 @@ init_prospect (void)
   scm_c_define_gsubr ("prospect-extention?", 0, 0, 0, scm_prospect_extention);
   scm_c_define_gsubr ("merkle-root", 1, 0, 0, scm_merkle_root);
   scm_c_define_gsubr ("get-data", 1, 0, 0, scm_get_data);
-  scm_c_define_gsubr ("test-c", 0, 0, 0, scm_test_c);
-  scm_c_define_gsubr ("mine", 1, 0, 0, scm_mine);
+  scm_c_define_gsubr ("test-c-hashes", 1, 0, 0, scm_c_test_hash);
+  scm_c_define_gsubr ("test-c-mine", 1, 0, 0, scm_c_test_mine);
 }

@@ -30,7 +30,10 @@
   #:use-module (unit-test)
   #:use-module (web client)
   #:use-module (web response)
-  #:export (post-json))
+  #:export (post-json
+            <template>
+            template->json
+            get-block-template))
 
 (define-class <test-rpc> (<test-case>))
 

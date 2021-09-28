@@ -121,35 +121,34 @@
 
 (define-method (test-get-data (self <test-ffi>))
   (let* ((tmpl   (make-template))
-       (file   (string->pointer "data.json"))
-       (json   (json-load-file file 0 %null-pointer)))
-  (assert-true (prospect-extention?))
-  (assert-true (pointer? tmpl))
-  (assert-true (pointer? file))
-  (assert-true (pointer? json))
-  (assert-true (null-pointer? (add-jansson tmpl json 0)))
-  (assert-true (init-generation tmpl %null-pointer 0))
-  (assert-equal 76 (get-data tmpl))
-  (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
-		(merkle-root tmpl))))
+	 (file   (string->pointer "data.json"))
+	 (json   (json-load-file file 0 %null-pointer)))
+    (assert-true (prospect-extention?))
+    (assert-true (pointer? tmpl))
+    (assert-true (pointer? file))
+    (assert-true (pointer? json))
+    (assert-true (null-pointer? (add-jansson tmpl json 0)))
+    (assert-true (init-generation tmpl %null-pointer 0))
+    (assert-equal 76 (get-data tmpl))
+    (assert-equal "ab52937526190b791f641a6c5c3b0c4ca78cfa35fb31398618787b49fbd2449a"
+		  (merkle-root tmpl))))
 
 
-(define-method (test-extention-c (self <test-ffi>))
-  (assert-true (test-c)))
+(define-method (test-hashes-c (self <test-ffi>))
+  (assert-true (test-c-hashes "data.json")))
 
+(use-modules (prospect rpc))
+
+;; (define-method (test-mine-c (self <test-ffi>))
+;;   (let* ((tmpl (get-block-template))
+;;	 (json (template->json tmpl)))
+;;     (assert-true (test-c-mine json))))
 ;; (define time-left
 ;;   (foreign-library-function
 ;;    libblkmaker
 ;;    "blkmk_time_left"
 ;;    #:return-type '*
 ;;    #:arg-types (list '* '*)))
-
-;; (define-method (test-mine (self <test-ffi>))
-;;   (let* ((tmpl   (make-template))
-;;	 (file   (string->pointer "data.json"))
-;;	 (json   (json-load-file file 0 %null-pointer)))
-;;     (assert-true (pointer? tmpl))
-;;     (assert-true (mine tmpl))))
 
 (define (request->string req)
   "Returns the json string for @var{req}"

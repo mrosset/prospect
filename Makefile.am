@@ -18,9 +18,7 @@
 
 ACLOCAL_AMFLAG = -I m4
 
-.NOTPARALLEL:
-
-SUBDIRS = . scripts scheme test-suite
+SUBDIRS = . scheme scripts test-suite
 
 do_subst = sed -e 's,[@]abs_top_builddir[@],$(abs_top_builddir),g' \
 	-e 's,[@]SHELL[@],$(SHELL),g'
@@ -42,7 +40,7 @@ py-merkle:
 	python ./scripts/merkle.py
 
 debug: all
-	./pre-inst-env gdb --args guile scripts/debug.scm
+	./pre-inst-env gdb --args guile scripts/debug
 
 run: scripts
-	./pre-inst-env guile scripts/debug.scm
+	./pre-inst-env guile scripts/debug

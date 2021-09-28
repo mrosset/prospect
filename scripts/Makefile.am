@@ -16,10 +16,15 @@
 ## You should have received a copy of the GNU General Public License along
 ## with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-do_subst = sed -e 's,[@]GUILE[@],$(GUILE),g'	\
-		-e 's,[@]LIBDIR[@],$(libdir),g' \
-		-e 's,[@]CCACHEDIR[@],$(ccachedir),g'
+bin_SCRIPTS = debug
 
-debug: debug.in
-	$(do_subst) < $< > $@
-	chmod +x $@
+# do_subst = sed -e 's,[@]GUILE[@],$(GUILE),g'	\
+#		-e 's,[@]LIBDIR[@],$(libdir),g' \
+#		-e 's,[@]CCACHEDIR[@],$(ccachedir),g'
+
+debug:
+
+
+# debug: debug.in
+#	$(do_subst) < $< > $@
+#	chmod +x $@
